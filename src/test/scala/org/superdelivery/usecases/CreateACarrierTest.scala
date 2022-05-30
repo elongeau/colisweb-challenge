@@ -36,7 +36,7 @@ class CreateACarrierTest extends FunSuite {
       speed = 20,
       cost = 10
     )
-    assertEquals(result, expected)
+    assertEquals(result, Right(expected))
   }
 
   test("save created carrier in DB") {
@@ -70,4 +70,27 @@ class CreateACarrierTest extends FunSuite {
     )
     assertEquals(repository.get(CarrierId("john-express")), expected)
   }
+
+    test("reject if a carrier with same ID exists") {
+      val command = CreateCarrierCommand(
+        name = "John express",
+        workingRange =
+          Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
+        workingArea = Area(Point(43.2969901, 5.3789783), 42),
+        maxWeight = 50,
+        maxVolume = 40,
+        maxPacketWeight = 30,
+        speed = 20,
+        cost = 10
+      )
+      sut.handle(command)
+
+      val result = sut.handle(command.copy(
+        maxVolume = 100
+      ))
+
+    val expected = Left("A carrier with same ID already exists")
+      assertEquals(result, expected)
+  }
+
 }

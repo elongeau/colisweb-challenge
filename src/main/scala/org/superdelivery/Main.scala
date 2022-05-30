@@ -1,7 +1,7 @@
 package org.superdelivery
 
 import cask._
-import cask.model.Status.Created
+import cask.model.Status.{Conflict, Created}
 import org.superdelivery.Commands.CreateCarrierCommand
 import org.superdelivery.model.{Carrier, CarrierId}
 import org.superdelivery.usecases.{CreateACarrier, InMemoryDB}
@@ -11,9 +11,12 @@ object Main extends MainRoutes {
   @postJson("/api/carriers")
   def createCarrier(
       requestCarrier: CreateCarrierCommand
-  ): Response[CarrierId] = {
+  ): Response[String] = {
     val result = new CreateACarrier(carrierRepository).handle(requestCarrier)
-    Response(result.carrierId, Created.code)
+    result match {
+      case Right(carrier) => Response(carrier.carrierId.id, Created.code)
+      case Left(error)    => Response(error, Conflict.code)
+    }
   }
 
   initialize()
