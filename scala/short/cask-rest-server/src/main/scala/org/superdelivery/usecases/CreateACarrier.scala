@@ -3,18 +3,22 @@ package org.superdelivery.usecases
 import org.superdelivery.Commands
 import org.superdelivery.model.{Carrier, CarrierId}
 
-class CreateACarrier {
-  def handle(command: Commands.CreateCarrierCommand): Carrier = Carrier(
-    carrierId = CarrierId(slugify(command.name)),
-    name = command.name,
-    workingRange = command.workingRange,
-    workingArea = command.workingArea,
-    maxWeight = command.maxWeight,
-    maxVolume = command.maxVolume,
-    maxPacketWeight = command.maxPacketWeight,
-    speed = command.speed,
-    cost = command.cost
-  )
+class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
+  def handle(command: Commands.CreateCarrierCommand): Carrier = {
+    val carrier = Carrier(
+      carrierId = CarrierId(slugify(command.name)),
+      name = command.name,
+      workingRange = command.workingRange,
+      workingArea = command.workingArea,
+      maxWeight = command.maxWeight,
+      maxVolume = command.maxVolume,
+      maxPacketWeight = command.maxPacketWeight,
+      speed = command.speed,
+      cost = command.cost
+    )
+    repository.save(carrier)
+    carrier
+  }
 
   private[this] def slugify(input: String): String = {
     import java.text.Normalizer
