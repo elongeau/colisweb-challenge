@@ -4,17 +4,9 @@ import org.superdelivery.Commands
 import org.superdelivery.model.{Carrier, CarrierId}
 
 class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
-  def handle(command: Commands.CreateCarrierCommand): Either[String,Carrier] = {
-    val id = CarrierId(slugify(command.name))
-    repository.get(id)
-      .fold[Either[String,Carrier]](createCarrier(command, id)) {
-       _ => Left("A carrier with same ID already exists")
-      }
-  }
-
-  private def createCarrier(command: Commands.CreateCarrierCommand, id: CarrierId) = {
+  def handle(command: Commands.CreateCarrierCommand): Carrier = {
     val carrier = Carrier(
-      carrierId = id,
+      carrierId = CarrierId(slugify(command.name)),
       name = command.name,
       workingRange = command.workingRange,
       workingArea = command.workingArea,
@@ -25,7 +17,7 @@ class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
       cost = command.cost
     )
     repository.save(carrier)
-    Right(carrier)
+    carrier
   }
 
   private[this] def slugify(input: String): String = {

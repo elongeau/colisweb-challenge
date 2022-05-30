@@ -68,7 +68,7 @@ object model {
     implicit val rw: ReadWriter[Timeslot] = macroRW
   }
 
-  case class Area(point: Point, distanceInKm: DistanceInKm)
+  case class Area(point: Point, radius: DistanceInKm)
   object Area {
     implicit val rw: ReadWriter[Area] = macroRW
   }
