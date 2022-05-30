@@ -1,0 +1,11 @@
+# sparkleshare
+.empty
+
+# vi
+*.sw?
+*~
+
+# IntelliJ
+.idea
+
+.bsp/

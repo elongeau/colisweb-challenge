@@ -1,0 +1,55 @@
+@startuml
+
+class Carrier {
+    ID UUID
+    WorkingRange
+    WorkingArea
+    MaxWeight
+    MaxVolume
+    MaxPacketWeight
+    Speed
+    Cost
+}
+
+class WorkingArea {
+    Coordinates
+    Radius Distance
+}
+
+class WorkingRange {
+    Start DateTime
+    End DateTime
+}
+
+Carrier --o WorkingArea
+Carrier --o WorkingRange
+
+class DeliveryCategory {
+  DeliveryRange
+  DeliveryArea
+  MaxWeight
+  MaxPacketWeight
+  MaxVolume
+}
+
+class Delivery {
+  ID
+  PickupPoint
+  ShippingPoint
+  Timeslot
+  Packets
+}
+
+class Packets {
+  List[Packet]
+}
+
+class Packet {
+  weight
+  volume
+}
+
+Delivery --o Packets
+Packets --o Packet
+@enduml
+
