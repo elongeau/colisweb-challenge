@@ -28,7 +28,7 @@ class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
     val carrier = Carrier(
       carrierId = id,
       name = command.name,
-      workingRange = command.workingRange,
+      workingTimeslot = command.workingRange,
       workingArea = command.workingArea,
       maxWeight = command.maxWeight,
       maxVolume = command.maxVolume,

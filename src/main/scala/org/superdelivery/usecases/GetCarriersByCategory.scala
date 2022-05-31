@@ -1,20 +1,38 @@
 package org.superdelivery.usecases
 
-import org.superdelivery.model.Compatibilities.{Compatibility, FULL, PARTIAL}
-import org.superdelivery.model.{Area, Carrier, CarrierId, DistanceInKm, Point, Timeslot, VolumeInCubeMeter, WeightInKg}
+import org.superdelivery.model.Compatibilities.Compatibility
+import org.superdelivery.model.{
+  Area,
+  Carrier,
+  CarrierId,
+  Compatibilities,
+  DistanceInKm,
+  Point,
+  Timeslot,
+  VolumeInCubeMeter,
+  WeightInKg
+}
 import org.superdelivery.repositories.Repository
 import org.superdelivery.usecases.GetCarriersByCategory.{Query, Result}
 import upickle.default._
 
 class GetCarriersByCategory(carrierRepository: Repository[CarrierId, Carrier]) {
   def handle(query: Query): List[Result] = carrierRepository.getAll.map { carrier =>
-    val distanceInKm1                        = distanceInKm(carrier.workingArea.point, query.deliveryArea.point)
-    val maxDistanceBetweenCarrierAndDelivery = distanceInKm1 + query.deliveryArea.radius
-    val isCloseEnough                        = maxDistanceBetweenCarrierAndDelivery <= carrier.workingArea.radius
+    val distanceCompatibility = {
+      val distance    = distanceInKm(carrier.workingArea.point, query.deliveryArea.point)
+      val maxDistance = distance + query.deliveryArea.radius
+      Compatibilities.from(maxDistance <= carrier.workingArea.radius)
+    }
 
-    val doesRangesMatch = carrier.workingRange.contains(query.deliveryRange)
-    // TODO make an algebra for compatibility ? to combine compatibility
-    Result(carrier.name, if (isCloseEnough && doesRangesMatch) FULL else PARTIAL)
+    val timeSlotCompatibility = Compatibilities.from(carrier.workingTimeslot.contains(query.deliveryTimeslot))
+
+    val packagingCompatibility = Compatibilities.from(
+      carrier.maxWeight >= query.maxWeight &&
+        carrier.maxPacketWeight >= query.maxPacketWeight &&
+        carrier.maxVolume >= query.maxVolume
+    )
+
+    Result(carrier.name, distanceCompatibility <+> timeSlotCompatibility <+> packagingCompatibility)
   }
 
   def distanceInKm(origin: Point, destination: Point): DistanceInKm = {
@@ -35,7 +53,7 @@ class GetCarriersByCategory(carrierRepository: Repository[CarrierId, Carrier]) {
 
 object GetCarriersByCategory {
   case class Query(
-    deliveryRange: Timeslot,
+    deliveryTimeslot: Timeslot,
     deliveryArea: Area,
     maxWeight: WeightInKg,
     maxPacketWeight: WeightInKg,

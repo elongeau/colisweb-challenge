@@ -45,7 +45,7 @@ class CarrierRoute(repository: Repository[CarrierId, Carrier]) extends MainRoute
     maxVolume: VolumeInCubeMeter
   ): List[GetCarriersByCategory.Result] = getCarriers.handle(
     Query(
-      deliveryRange = Timeslot(LocalTime.parse(start), LocalTime.parse(end)),
+      deliveryTimeslot = Timeslot(LocalTime.parse(start), LocalTime.parse(end)),
       deliveryArea = Area(Point(latitude, longitude), radius),
       maxWeight = maxWeight,
       maxPacketWeight = maxPacketWeight,

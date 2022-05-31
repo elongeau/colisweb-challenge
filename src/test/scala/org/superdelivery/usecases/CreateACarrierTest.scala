@@ -18,7 +18,7 @@ class CreateACarrierTest extends FunSuite {
     val expected = Carrier(
       carrierId = CarrierId("john-express"),
       name = "John express",
-      workingRange = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
+      workingTimeslot = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
       workingArea = Area(Point(43.2969901, 5.3789783), 42),
       maxWeight = 50,
       maxVolume = 40,
@@ -36,7 +36,7 @@ class CreateACarrierTest extends FunSuite {
       Carrier(
         carrierId = CarrierId("john-express"),
         name = "John express",
-        workingRange = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
+        workingTimeslot = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
         workingArea = Area(Point(43.2969901, 5.3789783), 42),
         maxWeight = 50,
         maxVolume = 40,

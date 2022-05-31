@@ -9,7 +9,7 @@ object model extends Serializer {
   case class Carrier(
     carrierId: CarrierId,
     name: String,
-    workingRange: Timeslot,
+    workingTimeslot: Timeslot,
     workingArea: Area,
     maxWeight: WeightInKg,
     maxVolume: VolumeInCubeMeter,
@@ -81,6 +81,18 @@ object model extends Serializer {
       f = _.toString,
       g = s => Compatibilities.values.find(v => v.toString == s.toUpperCase).get
     )
+
+    def from(b: Boolean): Compatibility = if (b) FULL else NONE
+
+    implicit class CompatibilityExtension(compatibility: Compatibility) {
+      def <+>(other: Compatibility): Compatibility = (compatibility, other) match {
+        case (FULL, NONE) => PARTIAL
+        case (FULL, x)    => x
+        case (PARTIAL, _) => PARTIAL
+        case (NONE, NONE) => NONE
+        case (NONE, _)    => PARTIAL
+      }
+    }
   }
 
   // From ColisWeb OpenSource
