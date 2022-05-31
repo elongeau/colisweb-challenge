@@ -5,17 +5,17 @@ import upickle.default._
 import java.time.LocalTime
 import java.util.UUID
 
-object model {
+object model extends Serializer {
   case class Carrier(
-      carrierId: CarrierId,
-      name: String,
-      workingRange: Timeslot,
-      workingArea: Area,
-      maxWeight: WeightInKg,
-      maxVolume: Volume,
-      maxPacketWeight: WeightInKg,
-      speed: SpeedInKmH,
-      cost: MoneyInCents
+    carrierId: CarrierId,
+    name: String,
+    workingRange: Timeslot,
+    workingArea: Area,
+    maxWeight: WeightInKg,
+    maxVolume: VolumeInCubeMeter,
+    maxPacketWeight: WeightInKg,
+    speed: SpeedInKmH,
+    cost: MoneyInCents
   )
   object Carrier {
     implicit val rw: ReadWriter[Carrier] = macroRW
@@ -26,23 +26,12 @@ object model {
     implicit val rw: ReadWriter[CarrierId] = macroRW
   }
 
-  case class DeliveryCategory(
-      deliveryRange: Timeslot,
-      deliveryArea: Area,
-      maxWeight: WeightInKg,
-      maxPacketWeight: WeightInKg,
-      maxVolume: Volume
-  )
-  object DeliveryCategory {
-    implicit val rw: ReadWriter[DeliveryCategory] = macroRW
-  }
-
   case class Delivery(
-      deliveryId: DeliveryId,
-      pickupPoint: Point,
-      shippingPoint: Point,
-      timeslot: Timeslot,
-      packets: Packets
+    deliveryId: DeliveryId,
+    pickupPoint: Point,
+    shippingPoint: Point,
+    timeslot: Timeslot,
+    packets: Packets
   )
   object Delivery {
     implicit val rw: ReadWriter[Delivery] = macroRW
@@ -53,7 +42,7 @@ object model {
     implicit val rw: ReadWriter[Packets] = macroRW
   }
 
-  case class Packet(weight: WeightInKg, volume: Volume)
+  case class Packet(weight: WeightInKg, volume: VolumeInCubeMeter)
   object Packet {
     implicit val rw: ReadWriter[Packet] = macroRW
   }
@@ -73,7 +62,7 @@ object model {
     implicit val rw: ReadWriter[Area] = macroRW
   }
 
-  type Volume = Double
+  type VolumeInCubeMeter = Double
 
   /** ℹ️ 2€ = 200 cents */
   type MoneyInCents = Int
@@ -89,24 +78,13 @@ object model {
   }
 
   // https://gitlab.com/colisweb-idl/colisweb-open-source/scala/scala-distances/-/blob/master/core/src/main/scala/com/colisweb/distances/model/package.scala
-  type SpeedInKmH = Double
-  type WeightInKg = Double
+  type SpeedInKmH    = Double
+  type WeightInKg    = Double
   type DimensionInCm = Double
 
-  type DistanceInKm = Double
+  type DistanceInKm      = Double
   type DurationInSeconds = Long
 
-  type Latitude = Double
+  type Latitude  = Double
   type Longitude = Double
-
-  implicit val localTimeReader: ReadWriter[LocalTime] = upickle.default
-    .readwriter[String]
-    .bimap(
-      f = _.toString,
-      g = {
-        case s: String => LocalTime.parse(s)
-        case x         => throw new RuntimeException(s"Invalid time $x")
-      }
-    )
-
 }
