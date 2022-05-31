@@ -1,6 +1,6 @@
-package org.superdelivery.usecases
+package org.superdelivery.repositories
 
-class InMemoryDB[K, V](key: V => K) extends Repository[K, V] {
+class InMemoryRepository[K, V](key: V => K) extends Repository[K, V] {
   private[this] var db = Map.empty[K, V]
 
   def get(key: K): Option[V] = db.get(key)

@@ -1,11 +1,11 @@
 package org.superdelivery
 
-import cask.MainRoutes
 import cask.model.Status.OK
 import io.undertow.Undertow
 import munit.FunSuite
-import org.superdelivery.model.{Area, Carrier, CarrierId, Compatibilities, Point, Timeslot}
-import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory, InMemoryDB}
+import org.superdelivery.model.{Area, Compatibilities, Point, Timeslot}
+import org.superdelivery.repositories.InMemoryCarrierRepository
+import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory}
 import upickle.default._
 
 import java.time.LocalTime
@@ -15,7 +15,7 @@ class CarrierRouteTest extends FunSuite {
     setup = _ => {
       val server = Undertow.builder
         .addHttpListener(8081, "localhost")
-        .setHandler(new CarrierRoute(new InMemoryDB[CarrierId, Carrier](_.carrierId)).defaultHandler)
+        .setHandler(new CarrierRoute(new InMemoryCarrierRepository).defaultHandler)
         .build
       server.start()
       server

@@ -1,4 +1,4 @@
-package org.superdelivery.usecases
+package org.superdelivery.repositories
 
 trait Repository[K, V] {
   def get(key: K): Option[V]

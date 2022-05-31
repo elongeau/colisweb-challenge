@@ -4,12 +4,14 @@ import munit.FunSuite
 import org.superdelivery.Data
 import org.superdelivery.Data.command
 import org.superdelivery.model.{Area, Carrier, CarrierId, Point, Timeslot}
+import org.superdelivery.repositories.InMemoryCarrierRepository
 
 import java.time.LocalTime
 
 class CreateACarrierTest extends FunSuite {
-  private val repository = new InMemoryDB[CarrierId, Carrier](_.carrierId)
+  private val repository = new InMemoryCarrierRepository
   private val sut        = new CreateACarrier(repository)
+
   test("return a Carrier with a random ID and same properties") {
     val result = sut.handle(command)
 

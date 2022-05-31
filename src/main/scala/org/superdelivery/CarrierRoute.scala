@@ -14,8 +14,9 @@ import org.superdelivery.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
+import org.superdelivery.repositories.Repository
 import org.superdelivery.usecases.GetCarriersByCategory.Query
-import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory, InMemoryDB, Repository}
+import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory}
 
 import java.time.LocalTime
 

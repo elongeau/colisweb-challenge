@@ -10,6 +10,7 @@ import org.superdelivery.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
+import org.superdelivery.repositories.Repository
 import org.superdelivery.usecases.CreateACarrier.Command
 import upickle.default._
 

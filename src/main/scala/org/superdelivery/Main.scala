@@ -1,7 +1,5 @@
 package org.superdelivery
 
-import cask.MainRoutes
-import org.superdelivery.model.{Carrier, CarrierId}
-import org.superdelivery.usecases.InMemoryDB
+import org.superdelivery.repositories.InMemoryCarrierRepository
 
-object Main extends CarrierRoute(new InMemoryDB[CarrierId, Carrier](_.carrierId)) {}
+object Main extends CarrierRoute(new InMemoryCarrierRepository) {}
