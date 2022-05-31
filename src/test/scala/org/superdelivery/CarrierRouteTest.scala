@@ -62,45 +62,8 @@ class CarrierRouteTest extends FunSuite {
         )
       )
     )
-    val marcusChrono = upickle.default.write(
-      Request(
-        CreateACarrier.Command(
-          name = "marcus chrono",
-          workingTimeslot = Timeslot(
-            LocalTime.parse("09:00"),
-            LocalTime.parse("14:00")
-          ),
-          workingArea = Area(Point(43.2969901, 5.3789783), 10),
-          maxWeight = 200,
-          maxVolume = 12,
-          maxPacketWeight = 20,
-          speed = 50,
-          cost = 13
-        )
-      )
-    )
-
-    val juliaTruck = upickle.default.write(
-      Request(
-        CreateACarrier.Command(
-          name = "julia truck",
-          workingTimeslot = Timeslot(
-            LocalTime.parse("09:00"),
-            LocalTime.parse("17:00")
-          ),
-          workingArea = Area(Point(43.2969901, 5.3789783), 10),
-          maxWeight = 120,
-          maxVolume = 12,
-          maxPacketWeight = 20,
-          speed = 50,
-          cost = 14
-        )
-      )
-    )
 
     requests.post(carrierUrl, data = johnExpress, check = false)
-    requests.post(carrierUrl, data = marcusChrono, check = false)
-    requests.post(carrierUrl, data = juliaTruck, check = false)
 
     val response = requests.get(
       s"$carrierUrl",
@@ -121,9 +84,7 @@ class CarrierRouteTest extends FunSuite {
     assertEquals(
       result,
       List(
-        GetCarriersByCategory.Result(CarrierId("john-express"), Compatibilities.FULL),
-        GetCarriersByCategory.Result(CarrierId("marcus-chrono"), Compatibilities.PARTIAL),
-        GetCarriersByCategory.Result(CarrierId("julia-truck"), Compatibilities.NONE)
+        GetCarriersByCategory.Result(CarrierId("john-express"), Compatibilities.PARTIAL)
       )
     )
   }

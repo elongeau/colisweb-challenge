@@ -3,28 +3,26 @@ package org.superdelivery.usecases
 import munit.FunSuite
 import org.superdelivery.Data
 import org.superdelivery.Data.command
-import org.superdelivery.model.{Area, Carrier, CarrierId, Point, Timeslot}
+import org.superdelivery.model.{Carrier, CarrierId}
 import org.superdelivery.repositories.InMemoryCarrierRepository
-
-import java.time.LocalTime
 
 class CreateACarrierTest extends FunSuite {
   private val repository = new InMemoryCarrierRepository
   private val sut        = new CreateACarrier(repository)
 
-  test("return a Carrier with a random ID and same properties") {
+  test("return a Carrier with slugified name as ID and same properties") {
     val result = sut.handle(command)
 
     val expected = Carrier(
       carrierId = CarrierId("john-express"),
       name = "John express",
-      workingTimeslot = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
-      workingArea = Area(Point(43.2969901, 5.3789783), 42),
-      maxWeight = 50,
-      maxVolume = 40,
-      maxPacketWeight = 30,
-      speed = 20,
-      cost = 10
+      workingTimeslot = command.workingTimeslot,
+      workingArea = command.workingArea,
+      maxWeight = command.maxWeight,
+      maxVolume = command.maxVolume,
+      maxPacketWeight = command.maxPacketWeight,
+      speed = command.speed,
+      cost = command.cost
     )
     assertEquals(result, Right(expected))
   }
@@ -36,13 +34,13 @@ class CreateACarrierTest extends FunSuite {
       Carrier(
         carrierId = CarrierId("john-express"),
         name = "John express",
-        workingTimeslot = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("18:00")),
-        workingArea = Area(Point(43.2969901, 5.3789783), 42),
-        maxWeight = 50,
-        maxVolume = 40,
-        maxPacketWeight = 30,
-        speed = 20,
-        cost = 10
+        workingTimeslot = command.workingTimeslot,
+        workingArea = command.workingArea,
+        maxWeight = command.maxWeight,
+        maxVolume = command.maxVolume,
+        maxPacketWeight = command.maxPacketWeight,
+        speed = command.speed,
+        cost = command.cost
       )
     )
     assertEquals(repository.get(CarrierId("john-express")), expected)
