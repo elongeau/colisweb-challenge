@@ -52,7 +52,14 @@ object model extends Serializer {
     implicit val rw: ReadWriter[DeliveryId] = macroRW
   }
 
-  case class Timeslot(start: LocalTime, end: LocalTime)
+  case class Timeslot(start: LocalTime, end: LocalTime) {
+    def contains(other: Timeslot): Boolean =
+      isBeforeOrEquals(start, other.start) && isAfterOrEquals(end, other.end)
+
+    private def isBeforeOrEquals(left: LocalTime, right: LocalTime) = left.equals(right) || left.isBefore(right)
+    private def isAfterOrEquals(left: LocalTime, right: LocalTime)  = left.equals(right) || left.isAfter(right)
+  }
+
   object Timeslot {
     implicit val rw: ReadWriter[Timeslot] = macroRW
   }

@@ -11,8 +11,10 @@ class GetCarriersByCategory(carrierRepository: Repository[CarrierId, Carrier]) {
     val distanceInKm1                        = distanceInKm(carrier.workingArea.point, query.deliveryArea.point)
     val maxDistanceBetweenCarrierAndDelivery = distanceInKm1 + query.deliveryArea.radius
     val isCloseEnough                        = maxDistanceBetweenCarrierAndDelivery <= carrier.workingArea.radius
+
+    val doesRangesMatch = carrier.workingRange.contains(query.deliveryRange)
     // TODO make an algebra for compatibility ? to combine compatibility
-    Result(carrier.name, if (isCloseEnough) FULL else PARTIAL)
+    Result(carrier.name, if (isCloseEnough && doesRangesMatch) FULL else PARTIAL)
   }
 
   def distanceInKm(origin: Point, destination: Point): DistanceInKm = {
