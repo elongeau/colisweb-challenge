@@ -7,5 +7,5 @@ class InMemoryDB[K, V](key: V => K) extends Repository[K, V] {
 
   def save(value: V): Unit = db = db.updated(key(value), value)
 
-  def getAll: Map[K, V] = db
+  def getAll: List[V] = db.values.toList
 }

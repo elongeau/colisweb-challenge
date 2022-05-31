@@ -1,7 +1,17 @@
 package org.superdelivery.usecases
 
-import org.superdelivery.model.{Area, Carrier, CarrierId, MoneyInCents, SpeedInKmH, Timeslot, VolumeInCubeMeter, WeightInKg}
+import org.superdelivery.model.{
+  Area,
+  Carrier,
+  CarrierId,
+  MoneyInCents,
+  SpeedInKmH,
+  Timeslot,
+  VolumeInCubeMeter,
+  WeightInKg
+}
 import org.superdelivery.usecases.CreateACarrier.Command
+import upickle.default._
 
 class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
   def handle(command: Command): Either[String, Carrier] = {
@@ -56,5 +66,7 @@ object CreateACarrier {
     speed: SpeedInKmH,
     cost: MoneyInCents
   )
-
+  object Command {
+    implicit val rw: ReadWriter[Command] = macroRW
+  }
 }

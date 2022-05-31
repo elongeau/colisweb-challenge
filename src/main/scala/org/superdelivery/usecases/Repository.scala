@@ -1,6 +1,7 @@
 package org.superdelivery.usecases
 
-trait Repository[K, T] {
-  def get(key: K): Option[T]
-  def save(entity: T): Unit
+trait Repository[K, V] {
+  def get(key: K): Option[V]
+  def getAll: List[V]
+  def save(entity: V): Unit
 }

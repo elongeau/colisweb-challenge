@@ -64,8 +64,17 @@ object model extends Serializer {
 
   type VolumeInCubeMeter = Double
 
-  /** ℹ️ 2€ = 200 cents */
+  /** 2€ = 200 cents */
   type MoneyInCents = Int
+
+  object Compatibilities extends Enumeration {
+    type Compatibility = Value
+    val FULL, PARTIAL, NONE = Value
+    implicit val rw: ReadWriter[Compatibility] = readwriter[String].bimap(
+      f = _.toString,
+      g = s => Compatibilities.values.find(v => v.toString == s.toUpperCase).get
+    )
+  }
 
   // From ColisWeb OpenSource
   //  https://gitlab.com/colisweb-idl/colisweb-open-source/scala/scala-distances/-/blob/master/core/src/main/scala/com/colisweb/distances/model/Point.scala
