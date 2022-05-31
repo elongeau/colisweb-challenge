@@ -3,7 +3,7 @@ package org.superdelivery
 import cask.model.Status.OK
 import io.undertow.Undertow
 import munit.FunSuite
-import org.superdelivery.model.{Area, Compatibilities, Point, Timeslot}
+import org.superdelivery.model.{Area, CarrierId, Compatibilities, Point, Timeslot}
 import org.superdelivery.repositories.InMemoryCarrierRepository
 import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory}
 import upickle.default._
@@ -49,7 +49,7 @@ class CarrierRouteTest extends FunSuite {
       Request(
         CreateACarrier.Command(
           name = "john express",
-          workingRange = Timeslot(
+          workingTimeslot = Timeslot(
             LocalTime.parse("09:00"),
             LocalTime.parse("18:00")
           ),
@@ -66,7 +66,7 @@ class CarrierRouteTest extends FunSuite {
       Request(
         CreateACarrier.Command(
           name = "marcus chrono",
-          workingRange = Timeslot(
+          workingTimeslot = Timeslot(
             LocalTime.parse("09:00"),
             LocalTime.parse("14:00")
           ),
@@ -84,7 +84,7 @@ class CarrierRouteTest extends FunSuite {
       Request(
         CreateACarrier.Command(
           name = "julia truck",
-          workingRange = Timeslot(
+          workingTimeslot = Timeslot(
             LocalTime.parse("09:00"),
             LocalTime.parse("17:00")
           ),
@@ -121,9 +121,9 @@ class CarrierRouteTest extends FunSuite {
     assertEquals(
       result,
       List(
-        GetCarriersByCategory.Result("john express", Compatibilities.FULL),
-        GetCarriersByCategory.Result("marcus chrono", Compatibilities.PARTIAL),
-        GetCarriersByCategory.Result("julia truck", Compatibilities.NONE)
+        GetCarriersByCategory.Result(CarrierId("john-express"), Compatibilities.FULL),
+        GetCarriersByCategory.Result(CarrierId("marcus-chrono"), Compatibilities.PARTIAL),
+        GetCarriersByCategory.Result(CarrierId("julia-truck"), Compatibilities.NONE)
       )
     )
   }

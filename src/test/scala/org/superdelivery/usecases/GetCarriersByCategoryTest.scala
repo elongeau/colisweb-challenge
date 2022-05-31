@@ -2,8 +2,8 @@ package org.superdelivery.usecases
 
 import munit.FunSuite
 import org.superdelivery.Data
-import org.superdelivery.model.Compatibilities.{FULL, PARTIAL, NONE}
-import org.superdelivery.model.{Area, Point, Timeslot, VolumeInCubeMeter, WeightInKg}
+import org.superdelivery.model.Compatibilities.{FULL, NONE, PARTIAL}
+import org.superdelivery.model.{Area, Carrier, CarrierId, Point, Timeslot, VolumeInCubeMeter, WeightInKg}
 import org.superdelivery.repositories.InMemoryCarrierRepository
 
 import java.time.LocalTime
@@ -27,7 +27,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.name, FULL)
+        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, FULL)
       )
     )
   }
@@ -48,7 +48,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.name, PARTIAL)
+        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
       )
     )
   }
@@ -76,7 +76,7 @@ class GetCarriersByCategoryTest extends FunSuite {
       assertEquals(
         value,
         List(
-          GetCarriersByCategory.Result(Data.defaultCarrier.name, PARTIAL)
+          GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
         )
       )
     }
@@ -103,7 +103,7 @@ class GetCarriersByCategoryTest extends FunSuite {
       assertEquals(
         value,
         List(
-          GetCarriersByCategory.Result(Data.defaultCarrier.name, PARTIAL)
+          GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
         )
       )
     }
@@ -143,7 +143,7 @@ class GetCarriersByCategoryTest extends FunSuite {
       assertEquals(
         value,
         List(
-          GetCarriersByCategory.Result(Data.defaultCarrier.name, PARTIAL)
+          GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
         )
       )
     }
@@ -165,8 +165,68 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.name, NONE)
+        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, NONE)
       )
     )
   }
+
+  test(s"should return carriers sorted by decreasing compatibility") {
+    repository.save(
+      Carrier(
+        carrierId = CarrierId("marcus-chrono"),
+        name = "marcus chrono",
+        workingTimeslot = Timeslot(
+          LocalTime.parse("09:00"),
+          LocalTime.parse("14:00")
+        ),
+        workingArea = Area(Point(43.2969901, 5.3789783), 10),
+        maxWeight = 200,
+        maxVolume = 12,
+        maxPacketWeight = 20,
+        speed = 50,
+        cost = 13
+      )
+    )
+
+    repository.save(
+      Carrier(
+        carrierId = CarrierId("julia-truck"),
+        name = "julia truck",
+        workingTimeslot = Timeslot(
+          LocalTime.parse("09:00"),
+          LocalTime.parse("14:00")
+        ),
+        workingArea = Area(Point(43.2969901, 5.3789783), 8),
+        maxWeight = 120,
+        maxVolume = 12,
+        maxPacketWeight = 20,
+        speed = 50,
+        cost = 14
+      )
+    )
+    repository.save(Data.defaultCarrier)
+
+    val value = sut.handle(
+      GetCarriersByCategory.Query(
+        deliveryTimeslot = Timeslot(
+          LocalTime.parse("10:00"),
+          LocalTime.parse("16:00")
+        ),
+        deliveryArea = Area(Point(43.3321852, 5.3880718), 5),
+        maxWeight = 130,
+        maxPacketWeight = 15,
+        maxVolume = 1
+      )
+    )
+
+    assertEquals(
+      value,
+      List(
+        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, FULL),
+        GetCarriersByCategory.Result(CarrierId("marcus-chrono"), PARTIAL),
+        GetCarriersByCategory.Result(CarrierId("julia-truck"), NONE)
+      )
+    )
+  }
+
 }

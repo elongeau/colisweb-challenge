@@ -28,7 +28,7 @@ class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
     val carrier = Carrier(
       carrierId = id,
       name = command.name,
-      workingTimeslot = command.workingRange,
+      workingTimeslot = command.workingTimeslot,
       workingArea = command.workingArea,
       maxWeight = command.maxWeight,
       maxVolume = command.maxVolume,
@@ -59,7 +59,7 @@ class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
 object CreateACarrier {
   case class Command(
     name: String,
-    workingRange: Timeslot,
+    workingTimeslot: Timeslot,
     workingArea: Area,
     maxWeight: WeightInKg,
     maxVolume: VolumeInCubeMeter,

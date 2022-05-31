@@ -32,8 +32,8 @@ class GetCarriersByCategory(carrierRepository: Repository[CarrierId, Carrier]) {
         carrier.maxVolume >= query.maxVolume
     )
 
-    Result(carrier.name, distanceCompatibility <+> timeSlotCompatibility <+> packagingCompatibility)
-  }
+    Result(carrier.carrierId, distanceCompatibility <+> timeSlotCompatibility <+> packagingCompatibility)
+  }.sortBy(_.compatibility)
 
   def distanceInKm(origin: Point, destination: Point): DistanceInKm = {
     import scala.math._
@@ -60,7 +60,7 @@ object GetCarriersByCategory {
     maxVolume: VolumeInCubeMeter
   )
 
-  case class Result(name: String, compatibility: Compatibility)
+  case class Result(carrier: CarrierId, compatibility: Compatibility)
   object Result {
     implicit val rw: ReadWriter[Result] = macroRW
   }
