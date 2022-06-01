@@ -2,8 +2,7 @@ package org.superdelivery
 
 import upickle.default._
 
-import java.time.LocalTime
-import java.util.UUID
+import java.time.{Duration, LocalTime}
 
 object model extends Serializer {
   case class Carrier(
@@ -26,17 +25,6 @@ object model extends Serializer {
     implicit val rw: ReadWriter[CarrierId] = macroRW
   }
 
-  case class Delivery(
-    deliveryId: DeliveryId,
-    pickupPoint: Point,
-    shippingPoint: Point,
-    timeslot: Timeslot,
-    packets: Packets
-  )
-  object Delivery {
-    implicit val rw: ReadWriter[Delivery] = macroRW
-  }
-
   case class Packets(packets: List[Packet])
   object Packets {
     implicit val rw: ReadWriter[Packets] = macroRW
@@ -47,17 +35,19 @@ object model extends Serializer {
     implicit val rw: ReadWriter[Packet] = macroRW
   }
 
-  case class DeliveryId(id: UUID)
-  object DeliveryId {
-    implicit val rw: ReadWriter[DeliveryId] = macroRW
+  private[model] implicit class LocalTimeExtensions(time: LocalTime) {
+    def isBeforeOrEquals(other: LocalTime): Boolean = time.equals(other) || time.isBefore(other)
+    def isAfterOrEquals(other: LocalTime): Boolean  = time.equals(other) || time.isAfter(other)
   }
 
   case class Timeslot(start: LocalTime, end: LocalTime) {
-    def contains(other: Timeslot): Boolean =
-      isBeforeOrEquals(start, other.start) && isAfterOrEquals(end, other.end)
+    def overlap(other: Timeslot): Boolean = containsTime(other.start) || containsTime(other.end)
 
-    private def isBeforeOrEquals(left: LocalTime, right: LocalTime) = left.equals(right) || left.isBefore(right)
-    private def isAfterOrEquals(left: LocalTime, right: LocalTime)  = left.equals(right) || left.isAfter(right)
+    def contains(other: Timeslot): Boolean = start.isBeforeOrEquals(other.start) && end.isAfterOrEquals(other.end)
+
+    lazy val duration: Duration = Duration.between(start, end)
+
+    private def containsTime(time: LocalTime): Boolean = start.isBeforeOrEquals(time) && end.isAfterOrEquals(time)
   }
 
   object Timeslot {

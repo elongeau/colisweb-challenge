@@ -10,12 +10,12 @@ import java.time.LocalTime
 
 class GetCarriersByCategoryTest extends FunSuite {
   private val repository = new InMemoryCarrierRepository
-  private val sut        = new GetCarriersByCategory(repository)
+  private val sut        = new GetCarriersForACategory(repository)
   test("should return carrier with FULL compatibility when all criteria matches") {
     repository.save(Data.defaultCarrier)
 
     val value = sut.handle(
-      GetCarriersByCategory.Query(
+      GetCarriersForACategory.Query(
         deliveryTimeslot = Data.defaultCarrier.workingTimeslot,
         deliveryArea = Data.defaultCarrier.workingArea,
         maxWeight = Data.defaultCarrier.maxWeight,
@@ -27,7 +27,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, FULL)
+        GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, FULL)
       )
     )
   }
@@ -36,7 +36,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     repository.save(Data.defaultCarrier)
 
     val value = sut.handle(
-      GetCarriersByCategory.Query(
+      GetCarriersForACategory.Query(
         deliveryTimeslot = Data.defaultCarrier.workingTimeslot,
         deliveryArea = Area(Point(48.891305, 2.3529867), 1),
         maxWeight = Data.defaultCarrier.maxWeight,
@@ -48,7 +48,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
+        GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
       )
     )
   }
@@ -64,7 +64,7 @@ class GetCarriersByCategoryTest extends FunSuite {
       repository.save(Data.defaultCarrier)
 
       val value = sut.handle(
-        GetCarriersByCategory.Query(
+        GetCarriersForACategory.Query(
           deliveryTimeslot = timeslot,
           deliveryArea = Data.defaultCarrier.workingArea,
           maxWeight = Data.defaultCarrier.maxWeight,
@@ -76,7 +76,7 @@ class GetCarriersByCategoryTest extends FunSuite {
       assertEquals(
         value,
         List(
-          GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
+          GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
         )
       )
     }
@@ -91,7 +91,7 @@ class GetCarriersByCategoryTest extends FunSuite {
       repository.save(Data.defaultCarrier)
 
       val value = sut.handle(
-        GetCarriersByCategory.Query(
+        GetCarriersForACategory.Query(
           deliveryTimeslot = Data.defaultCarrier.workingTimeslot,
           deliveryArea = Data.defaultCarrier.workingArea,
           maxWeight = maxWeight,
@@ -103,32 +103,32 @@ class GetCarriersByCategoryTest extends FunSuite {
       assertEquals(
         value,
         List(
-          GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
+          GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
         )
       )
     }
   }
 
-  val updateArea: GetCarriersByCategory.Query => GetCarriersByCategory.Query = _.copy(
+  val updateArea: GetCarriersForACategory.Query => GetCarriersForACategory.Query = _.copy(
     deliveryArea = Area(Point(48.891305, 2.3529867), 1)
   )
 
-  val updateTimeslot: GetCarriersByCategory.Query => GetCarriersByCategory.Query = _.copy(
+  val updateTimeslot: GetCarriersForACategory.Query => GetCarriersForACategory.Query = _.copy(
     deliveryTimeslot = Timeslot(LocalTime.parse("07:00"), LocalTime.parse("10:00"))
   )
 
-  val updatePackaging: GetCarriersByCategory.Query => GetCarriersByCategory.Query = _.copy(
+  val updatePackaging: GetCarriersForACategory.Query => GetCarriersForACategory.Query = _.copy(
     maxWeight = Data.defaultCarrier.maxWeight + 1
   )
 
   List(
-    ("area and timeslot", List(updateArea, updateTimeslot)),
-    ("area and packaging", List(updateArea, updatePackaging)),
-    ("packaging and timeslot", List(updatePackaging, updateTimeslot))
-  ).foreach { case (label, updates) =>
+    ("area and timeslot", updateArea.andThen(updateTimeslot)),
+    ("area and packaging", updateArea.andThen(updatePackaging)),
+    ("packaging and timeslot", updatePackaging.andThen(updateTimeslot))
+  ).foreach { case (label, updateFn) =>
     test(s"should return carrier with PARTIAL compatibility when carrier does not match category on $label") {
       repository.save(Data.defaultCarrier)
-      val query = GetCarriersByCategory.Query(
+      val query = GetCarriersForACategory.Query(
         deliveryTimeslot = Data.defaultCarrier.workingTimeslot,
         deliveryArea = Data.defaultCarrier.workingArea,
         maxWeight = Data.defaultCarrier.maxWeight,
@@ -136,14 +136,12 @@ class GetCarriersByCategoryTest extends FunSuite {
         maxVolume = Data.defaultCarrier.maxVolume
       )
 
-      val value = sut.handle(updates.foldLeft(query) { (query, f) =>
-        f(query)
-      })
+      val value = sut.handle(updateFn(query))
 
       assertEquals(
         value,
         List(
-          GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
+          GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, PARTIAL)
         )
       )
     }
@@ -153,7 +151,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     repository.save(Data.defaultCarrier)
 
     val value = sut.handle(
-      GetCarriersByCategory.Query(
+      GetCarriersForACategory.Query(
         deliveryTimeslot = Timeslot(LocalTime.parse("07:00"), LocalTime.parse("10:00")),
         deliveryArea = Area(Point(48.891305, 2.3529867), 1),
         maxWeight = Data.defaultCarrier.maxWeight + 1,
@@ -165,7 +163,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, NONE)
+        GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, NONE)
       )
     )
   }
@@ -207,7 +205,7 @@ class GetCarriersByCategoryTest extends FunSuite {
     repository.save(Data.defaultCarrier)
 
     val value = sut.handle(
-      GetCarriersByCategory.Query(
+      GetCarriersForACategory.Query(
         deliveryTimeslot = Timeslot(
           LocalTime.parse("10:00"),
           LocalTime.parse("16:00")
@@ -222,9 +220,9 @@ class GetCarriersByCategoryTest extends FunSuite {
     assertEquals(
       value,
       List(
-        GetCarriersByCategory.Result(Data.defaultCarrier.carrierId, FULL),
-        GetCarriersByCategory.Result(CarrierId("marcus-chrono"), PARTIAL),
-        GetCarriersByCategory.Result(CarrierId("julia-truck"), NONE)
+        GetCarriersForACategory.Result(Data.defaultCarrier.carrierId, FULL),
+        GetCarriersForACategory.Result(CarrierId("marcus-chrono"), PARTIAL),
+        GetCarriersForACategory.Result(CarrierId("julia-truck"), NONE)
       )
     )
   }

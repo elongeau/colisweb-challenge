@@ -1,7 +1,7 @@
 package org.superdelivery
 
-import org.superdelivery.model.{Area, Carrier, CarrierId, Point, Timeslot}
-import org.superdelivery.usecases.CreateACarrier
+import org.superdelivery.model.{Area, Carrier, CarrierId, Packet, Packets, Point, Timeslot}
+import org.superdelivery.usecases.{CreateACarrier, GetBestCarrierForADelivery}
 
 import java.time.LocalTime
 
@@ -27,5 +27,17 @@ object Data {
     maxPacketWeight = 20,
     speed = 50,
     cost = 15
+  )
+
+  lazy val defaultGetBestCarrierQuery: GetBestCarrierForADelivery.Query = GetBestCarrierForADelivery.Query(
+    pickupPoint = Data.defaultCarrier.workingArea.point,
+    shippingPoint = Point(43.2978255, 5.3771758),
+    timeslot = Timeslot(LocalTime.parse("09:00"), LocalTime.parse("10:00")),
+    packets = Packets(
+      List(
+        Packet(10, 2),
+        Packet(5, 3)
+      )
+    )
   )
 }

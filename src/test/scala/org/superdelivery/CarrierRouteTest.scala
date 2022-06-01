@@ -3,9 +3,9 @@ package org.superdelivery
 import cask.model.Status.OK
 import io.undertow.Undertow
 import munit.FunSuite
-import org.superdelivery.model.{Area, CarrierId, Compatibilities, Point, Timeslot}
+import org.superdelivery.model.{Area, CarrierId, Compatibilities, Packet, Packets, Point, Timeslot}
 import org.superdelivery.repositories.InMemoryCarrierRepository
-import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory}
+import org.superdelivery.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
 import upickle.default._
 
 import java.time.LocalTime
@@ -27,14 +27,14 @@ class CarrierRouteTest extends FunSuite {
   serverFixture.test("return Created status with ID when carrier is created") { _ =>
     val response = requests.post(
       s"$carrierUrl",
-      data = upickle.default.write(Request(Data.command))
+      data = upickle.default.write(RequestCommand(Data.command))
     )
     assertEquals(response.statusCode, 201)
     assertEquals(response.text(), """"john-express"""")
   }
 
   serverFixture.test("return Conflict status and reason when carrier already exists") { _ =>
-    val json = upickle.default.write(Request(Data.command))
+    val json = upickle.default.write(RequestCommand(Data.command))
     requests.post(carrierUrl, data = json, check = false)
 
     val response =
@@ -46,7 +46,7 @@ class CarrierRouteTest extends FunSuite {
 
   serverFixture.test("return carriers with their compatibility against a delivery category") { _ =>
     val johnExpress = upickle.default.write(
-      Request(
+      RequestCommand(
         CreateACarrier.Command(
           name = "john express",
           workingTimeslot = Timeslot(
@@ -66,7 +66,7 @@ class CarrierRouteTest extends FunSuite {
     requests.post(carrierUrl, data = johnExpress, check = false)
 
     val response = requests.get(
-      s"$carrierUrl",
+      url = s"$carrierUrl/categories",
       params = Map(
         "start"           -> "09:00",
         "end"             -> "18:00",
@@ -80,17 +80,70 @@ class CarrierRouteTest extends FunSuite {
     )
 
     assertEquals(response.statusCode, OK.code)
-    val result = upickle.default.read[List[GetCarriersByCategory.Result]](response.text())
+    val result = upickle.default.read[List[GetCarriersForACategory.Result]](response.text())
     assertEquals(
       result,
       List(
-        GetCarriersByCategory.Result(CarrierId("john-express"), Compatibilities.PARTIAL)
+        GetCarriersForACategory.Result(CarrierId("john-express"), Compatibilities.PARTIAL)
       )
     )
   }
 
-  case class Request(requestCarrier: CreateACarrier.Command)
-  object Request {
-    implicit val rw: ReadWriter[Request] = macroRW
+  serverFixture.test("get best carrier for a delivery") { _ =>
+    val johnExpress = upickle.default.write(
+      RequestCommand(
+        CreateACarrier.Command(
+          name = "john express",
+          workingTimeslot = Timeslot(
+            LocalTime.parse("09:00"),
+            LocalTime.parse("18:00")
+          ),
+          workingArea = Area(Point(43.2969901, 5.3789783), 10),
+          maxWeight = 200,
+          maxVolume = 12,
+          maxPacketWeight = 20,
+          speed = 50,
+          cost = 15
+        )
+      )
+    )
+
+    requests.post(carrierUrl, data = johnExpress, check = false)
+
+    val response = requests.post(
+      url = s"$carrierUrl/deliveries",
+      data = upickle.default.write(
+        RequestQuery(
+          GetBestCarrierForADelivery.Query(
+            pickupPoint = Point(43.2969901, 5.3789783),
+            shippingPoint = Point(43.2969901, 5.3789783),
+            timeslot = Timeslot(
+              LocalTime.parse("09:00"),
+              LocalTime.parse("18:00")
+            ),
+            packets = Packets(
+              List(
+                Packet(10, 2),
+                Packet(15, 4)
+              )
+            )
+          )
+        )
+      )
+    )
+
+    assertEquals(response.statusCode, OK.code)
+    val result = upickle.default.read[GetBestCarrierForADelivery.Result](response.text())
+    assertEquals(result, GetBestCarrierForADelivery.Result(Some(CarrierId("john-express"))))
+  }
+
+  case class RequestCommand(requestCarrier: CreateACarrier.Command)
+  object RequestCommand {
+    implicit val rw: ReadWriter[RequestCommand] = macroRW
+  }
+
+  case class RequestQuery(query: GetBestCarrierForADelivery.Query)
+  object RequestQuery {
+    implicit val rw: ReadWriter[RequestQuery] = macroRW
   }
 }

@@ -15,14 +15,15 @@ import org.superdelivery.model.{
   WeightInKg
 }
 import org.superdelivery.repositories.Repository
-import org.superdelivery.usecases.GetCarriersByCategory.Query
-import org.superdelivery.usecases.{CreateACarrier, GetCarriersByCategory}
+import org.superdelivery.usecases.GetCarriersForACategory.Query
+import org.superdelivery.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
 
 import java.time.LocalTime
 
-class CarrierRoute(repository: Repository[CarrierId, Carrier]) extends MainRoutes with Serializer {
-  private[this] val createACarrier = new CreateACarrier(repository)
-  private[this] val getCarriers    = new GetCarriersByCategory(repository)
+class CarrierRoute(carrierRepository: Repository[CarrierId, Carrier]) extends MainRoutes with Serializer {
+  private[this] val createACarrier             = new CreateACarrier(carrierRepository)
+  private[this] val getCarriersForACategory    = new GetCarriersForACategory(carrierRepository)
+  private[this] val getBestCarrierForADelivery = new GetBestCarrierForADelivery(carrierRepository)
 
   @postJson("/api/carriers")
   def createCarrier(requestCarrier: CreateACarrier.Command): Response[String] = {
@@ -33,7 +34,7 @@ class CarrierRoute(repository: Repository[CarrierId, Carrier]) extends MainRoute
     }
   }
 
-  @getJson("/api/carriers")
+  @getJson("/api/carriers/categories")
   def getByCategory(
     start: String,
     end: String,
@@ -43,7 +44,7 @@ class CarrierRoute(repository: Repository[CarrierId, Carrier]) extends MainRoute
     maxWeight: WeightInKg,
     maxPacketWeight: WeightInKg,
     maxVolume: VolumeInCubeMeter
-  ): List[GetCarriersByCategory.Result] = getCarriers.handle(
+  ): List[GetCarriersForACategory.Result] = getCarriersForACategory.handle(
     Query(
       deliveryTimeslot = Timeslot(LocalTime.parse(start), LocalTime.parse(end)),
       deliveryArea = Area(Point(latitude, longitude), radius),
@@ -52,6 +53,10 @@ class CarrierRoute(repository: Repository[CarrierId, Carrier]) extends MainRoute
       maxVolume = maxVolume
     )
   )
+
+  @postJson("/api/carriers/deliveries")
+  def findBestForADelivery(query: GetBestCarrierForADelivery.Query): GetBestCarrierForADelivery.Result =
+    getBestCarrierForADelivery.handle(query)
 
   initialize()
 }
