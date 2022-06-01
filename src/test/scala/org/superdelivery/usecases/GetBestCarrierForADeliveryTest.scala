@@ -63,7 +63,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
       val result = sut.handle(Data.defaultGetBestCarrierQuery.copy(timeslot = timeslot))
 
-      assertEquals(result, None)
+      assertEquals(result, Some(Data.defaultCarrier.carrierId))
     }
   }
 
@@ -108,7 +108,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, None)
+    assertEquals(result, Some(CarrierId("cheapest")))
   }
 
   test("should return carrier with bonus when both match all criteria but one can deliver in time") {
@@ -125,6 +125,6 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, None)
+    assertEquals(result, Some(CarrierId("with-bonus")))
   }
 }
