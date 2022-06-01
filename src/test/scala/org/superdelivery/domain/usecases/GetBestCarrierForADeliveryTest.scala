@@ -1,10 +1,10 @@
-package org.superdelivery.usecases
+package org.superdelivery.domain.usecases
 
 import munit.FunSuite
 import org.superdelivery.Data
-import org.superdelivery.model.{Carrier, CarrierId, Point, Timeslot}
-import org.superdelivery.repositories.InMemoryCarrierRepository
-import org.superdelivery.usecases.GetBestCarrierForADelivery.Query
+import org.superdelivery.domain.model.{Carrier, CarrierId, Point, Timeslot}
+import org.superdelivery.domain.usecases.GetBestCarrierForADelivery.Query
+import org.superdelivery.infrastructure.repositories.InMemoryCarrierRepository
 
 import java.time.LocalTime
 

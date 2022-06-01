@@ -1,10 +1,9 @@
-package org.superdelivery.usecases
+package org.superdelivery.domain.usecases
 
-import org.superdelivery.model.{Carrier, CarrierId, Packets, Point, Timeslot}
-import org.superdelivery.repositories.Repository
-import org.superdelivery.usecases.GetBestCarrierForADelivery.Query
-import org.superdelivery.usecases.Internals._
-import upickle.default._
+import org.superdelivery.domain.model.{Carrier, CarrierId, Packet, Point, Timeslot}
+import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.usecases.GetBestCarrierForADelivery.Query
+import org.superdelivery.domain.usecases.Internals._
 
 import java.time.Duration
 import scala.math.Ordered.orderingToOrdered
@@ -41,10 +40,10 @@ class GetBestCarrierForADelivery(repository: Repository[CarrierId, Carrier]) {
 
   private def packageFit(query: Query, carrier: Carrier) =
     Option.when {
-      val weights = query.packets.packets.map(_.weight)
+      val weights = query.packets.map(_.weight)
       weights.sum <= carrier.maxWeight &&
       weights.max <= carrier.maxPacketWeight &&
-      query.packets.packets.map(_.volume).max <= carrier.maxVolume
+      query.packets.map(_.volume).max <= carrier.maxVolume
     }(FitPackaging)
 
   private def overlapTimeslot(query: Query, carrier: Carrier) =
@@ -71,8 +70,6 @@ private object Internals {
 }
 
 object GetBestCarrierForADelivery {
-  case class Query(pickupPoint: Point, shippingPoint: Point, timeslot: Timeslot, packets: Packets)
-  object Query {
-    implicit val rw: ReadWriter[Query] = macroRW
-  }
+  case class Query(pickupPoint: Point, shippingPoint: Point, timeslot: Timeslot, packets: List[Packet])
+  object Query {}
 }

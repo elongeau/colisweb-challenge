@@ -1,6 +1,6 @@
-package org.superdelivery.usecases
+package org.superdelivery.domain.usecases
 
-import org.superdelivery.model.{
+import org.superdelivery.domain.model.{
   Area,
   Carrier,
   CarrierId,
@@ -10,9 +10,8 @@ import org.superdelivery.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
-import org.superdelivery.repositories.Repository
-import org.superdelivery.usecases.CreateACarrier.Command
-import upickle.default._
+import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.usecases.CreateACarrier.Command
 
 class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
   def handle(command: Command): Either[String, Carrier] = {
@@ -67,7 +66,4 @@ object CreateACarrier {
     speed: SpeedInKmH,
     cost: MoneyInCents
   )
-  object Command {
-    implicit val rw: ReadWriter[Command] = macroRW
-  }
 }

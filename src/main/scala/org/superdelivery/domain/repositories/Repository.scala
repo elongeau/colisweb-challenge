@@ -1,4 +1,4 @@
-package org.superdelivery.repositories
+package org.superdelivery.domain.repositories
 
 trait Repository[K, V] {
   def get(key: K): Option[V]

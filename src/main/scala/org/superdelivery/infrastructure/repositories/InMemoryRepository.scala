@@ -1,4 +1,6 @@
-package org.superdelivery.repositories
+package org.superdelivery.infrastructure.repositories
+
+import org.superdelivery.domain.repositories.Repository
 
 class InMemoryRepository[K, V](key: V => K) extends Repository[K, V] {
   private[this] var db = Map.empty[K, V]

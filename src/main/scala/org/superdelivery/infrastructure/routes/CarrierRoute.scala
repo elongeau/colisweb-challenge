@@ -1,9 +1,9 @@
-package org.superdelivery
+package org.superdelivery.infrastructure.routes
 
 import cask._
 import cask.endpoints.JsonData
 import cask.model.Status.{Conflict, Created, NotFound}
-import org.superdelivery.model.{
+import org.superdelivery.domain.model.{
   Area,
   Carrier,
   CarrierId,
@@ -15,13 +15,13 @@ import org.superdelivery.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
-import org.superdelivery.repositories.Repository
-import org.superdelivery.usecases.GetCarriersForACategory.Query
-import org.superdelivery.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
+import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.usecases.GetCarriersForACategory.Query
+import org.superdelivery.domain.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
 
 import java.time.LocalTime
 
-class CarrierRoute(carrierRepository: Repository[CarrierId, Carrier]) extends MainRoutes with Serializer {
+class CarrierRoute(carrierRepository: Repository[CarrierId, Carrier]) extends MainRoutes with JsonRW {
   private[this] val createACarrier             = new CreateACarrier(carrierRepository)
   private[this] val getCarriersForACategory    = new GetCarriersForACategory(carrierRepository)
   private[this] val getBestCarrierForADelivery = new GetBestCarrierForADelivery(carrierRepository)

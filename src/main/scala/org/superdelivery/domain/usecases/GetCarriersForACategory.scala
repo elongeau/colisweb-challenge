@@ -1,7 +1,7 @@
-package org.superdelivery.usecases
+package org.superdelivery.domain.usecases
 
-import org.superdelivery.model.Compatibilities.Compatibility
-import org.superdelivery.model.{
+import org.superdelivery.domain.model.Compatibilities.Compatibility
+import org.superdelivery.domain.model.{
   Area,
   Carrier,
   CarrierId,
@@ -12,9 +12,8 @@ import org.superdelivery.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
-import org.superdelivery.repositories.Repository
-import org.superdelivery.usecases.GetCarriersForACategory.{Query, Result}
-import upickle.default._
+import GetCarriersForACategory.{Query, Result}
+import org.superdelivery.domain.repositories.Repository
 
 class GetCarriersForACategory(carrierRepository: Repository[CarrierId, Carrier]) {
   def handle(query: Query): List[Result] = carrierRepository.getAll.map { carrier =>
@@ -47,8 +46,4 @@ object GetCarriersForACategory {
   )
 
   case class Result(carrier: CarrierId, compatibility: Compatibility)
-  object Result {
-    implicit val rw: ReadWriter[Result] = macroRW
-  }
-
 }

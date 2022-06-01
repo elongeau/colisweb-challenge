@@ -1,11 +1,12 @@
-package org.superdelivery
+package org.superdelivery.infrastructure.routes
 
 import cask.model.Status.{NotFound, OK}
 import io.undertow.Undertow
 import munit.FunSuite
-import org.superdelivery.model.{Area, CarrierId, Compatibilities, Packet, Packets, Point, Timeslot}
-import org.superdelivery.repositories.InMemoryCarrierRepository
-import org.superdelivery.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
+import org.superdelivery.Data
+import org.superdelivery.domain.model.{CarrierId, Compatibilities, Packet, Point, Timeslot}
+import org.superdelivery.domain.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
+import org.superdelivery.infrastructure.repositories.InMemoryCarrierRepository
 import upickle.default._
 
 import java.time.LocalTime
@@ -47,23 +48,7 @@ class CarrierRouteTest extends FunSuite {
   serverFixture.test("return carriers with their compatibility against a delivery category") { _ =>
     requests.post(
       url = carrierUrl,
-      data = upickle.default.write(
-        RequestCommand(
-          CreateACarrier.Command(
-            name = "john express",
-            workingTimeslot = Timeslot(
-              LocalTime.parse("09:00"),
-              LocalTime.parse("18:00")
-            ),
-            workingArea = Area(Point(43.2969901, 5.3789783), 10),
-            maxWeight = 200,
-            maxVolume = 12,
-            maxPacketWeight = 20,
-            speed = 50,
-            cost = 15
-          )
-        )
-      ),
+      data = upickle.default.write(RequestCommand(Data.command)),
       check = false
     )
 
@@ -93,23 +78,7 @@ class CarrierRouteTest extends FunSuite {
   serverFixture.test("get best carrier for a delivery") { _ =>
     requests.post(
       url = carrierUrl,
-      data = upickle.default.write(
-        RequestCommand(
-          CreateACarrier.Command(
-            name = "john express",
-            workingTimeslot = Timeslot(
-              LocalTime.parse("09:00"),
-              LocalTime.parse("18:00")
-            ),
-            workingArea = Area(Point(43.2969901, 5.3789783), 10),
-            maxWeight = 200,
-            maxVolume = 12,
-            maxPacketWeight = 20,
-            speed = 50,
-            cost = 15
-          )
-        )
-      ),
+      data = upickle.default.write(RequestCommand(Data.command)),
       check = false
     )
 
@@ -124,11 +93,9 @@ class CarrierRouteTest extends FunSuite {
               LocalTime.parse("09:00"),
               LocalTime.parse("18:00")
             ),
-            packets = Packets(
-              List(
-                Packet(10, 2),
-                Packet(15, 4)
-              )
+            packets = List(
+              Packet(10, 2),
+              Packet(15, 4)
             )
           )
         )
@@ -155,11 +122,9 @@ class CarrierRouteTest extends FunSuite {
               LocalTime.parse("09:00"),
               LocalTime.parse("18:00")
             ),
-            packets = Packets(
-              List(
-                Packet(10, 2),
-                Packet(15, 4)
-              )
+            packets = List(
+              Packet(10, 2),
+              Packet(15, 4)
             )
           )
         )

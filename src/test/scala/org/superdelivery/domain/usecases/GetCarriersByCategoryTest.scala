@@ -1,10 +1,10 @@
-package org.superdelivery.usecases
+package org.superdelivery.domain.usecases
 
 import munit.FunSuite
 import org.superdelivery.Data
-import org.superdelivery.model.Compatibilities.{FULL, NONE, PARTIAL}
-import org.superdelivery.model.{Area, Carrier, CarrierId, Point, Timeslot, VolumeInCubeMeter, WeightInKg}
-import org.superdelivery.repositories.InMemoryCarrierRepository
+import org.superdelivery.domain.model.Compatibilities.{FULL, NONE, PARTIAL}
+import org.superdelivery.domain.model.{Area, Carrier, CarrierId, Point, Timeslot, VolumeInCubeMeter, WeightInKg}
+import org.superdelivery.infrastructure.repositories.InMemoryCarrierRepository
 
 import java.time.LocalTime
 

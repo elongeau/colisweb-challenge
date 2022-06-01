@@ -1,8 +1,8 @@
 @startuml
 
 class Carrier {
-    ID UUID
-    WorkingRange
+    CarrierId
+    WorkingTimeslot
     WorkingArea
     MaxWeight
     MaxVolume
@@ -10,46 +10,22 @@ class Carrier {
     Speed
     Cost
 }
-
+class CarrierId {
+    id String
+}
 class WorkingArea {
     Coordinates
     Radius Distance
 }
 
-class WorkingRange {
-    Start DateTime
-    End DateTime
+class WorkingTimeslot {
+    Start
+    End
 }
 
+Carrier --o CarrierId
 Carrier --o WorkingArea
-Carrier --o WorkingRange
+Carrier --o WorkingTimeslot
 
-class DeliveryCategory {
-  DeliveryRange
-  DeliveryArea
-  MaxWeight
-  MaxPacketWeight
-  MaxVolume
-}
-
-class Delivery {
-  ID
-  PickupPoint
-  ShippingPoint
-  Timeslot
-  Packets
-}
-
-class Packets {
-  List[Packet]
-}
-
-class Packet {
-  weight
-  volume
-}
-
-Delivery --o Packets
-Packets --o Packet
 @enduml
 

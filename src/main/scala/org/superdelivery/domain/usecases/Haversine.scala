@@ -1,6 +1,6 @@
-package org.superdelivery.usecases
+package org.superdelivery.domain.usecases
 
-import org.superdelivery.model.{DistanceInKm, Point}
+import org.superdelivery.domain.model.{DistanceInKm, Point}
 
 object Haversine {
   def distanceInKm(origin: Point, destination: Point): DistanceInKm = {
