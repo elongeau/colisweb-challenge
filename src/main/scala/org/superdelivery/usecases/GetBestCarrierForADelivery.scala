@@ -1,50 +1,61 @@
 package org.superdelivery.usecases
 
-import org.superdelivery.model.{Carrier, CarrierId, DurationInSeconds, Packets, Point, Timeslot}
+import org.superdelivery.model.{Carrier, CarrierId, Packets, Point, Timeslot}
 import org.superdelivery.repositories.Repository
-import org.superdelivery.usecases.GetBestCarrierForADelivery.{Query, Result}
+import org.superdelivery.usecases.GetBestCarrierForADelivery.Query
 import org.superdelivery.usecases.Internals._
 import upickle.default._
 
 import java.time.Duration
+import scala.math.Ordered.orderingToOrdered
 
 class GetBestCarrierForADelivery(repository: Repository[CarrierId, Carrier]) {
-  def handle(query: Query): Result = {
+  def handle(query: Query): Option[CarrierId] = {
     val matcheds = repository.getAll.map { carrier =>
-      val inWorkingArea = Option.when {
-        val distanceToPickup   = Haversine.distanceInKm(carrier.workingArea.point, query.pickupPoint)
-        val distanceToShipping = Haversine.distanceInKm(carrier.workingArea.point, query.shippingPoint)
-        carrier.workingArea.radius >= distanceToPickup && carrier.workingArea.radius >= distanceToShipping
-      }(InWorkingArea)
-
-      val overlapTimeslot = Option.when(carrier.workingTimeslot.overlap(query.timeslot))(OverlapTimeslot)
-
-      val packageFit = Option.when {
-        val weights = query.packets.packets.map(_.weight)
-        weights.sum <= carrier.maxWeight &&
-        weights.max <= carrier.maxPacketWeight &&
-        query.packets.packets.map(_.volume).max <= carrier.maxVolume
-      }(FitPackaging)
-
-      val bonus = Option.when {
-        val distance                       = Haversine.distanceInKm(query.pickupPoint, query.shippingPoint)
-        val timeItTakes: DurationInSeconds = (distance / carrier.speed * 3600).toLong
-        query.timeslot.duration.compareTo(Duration.ofSeconds(timeItTakes)) > 0
-      }(InWorkingTimeslotBonus)
-
-      MatchingCarrier(carrier, List(inWorkingArea, overlapTimeslot, packageFit, bonus).flatten)
+      MatchingCarrier(
+        carrier = carrier,
+        criterias = List(
+          inWorkingArea(query, carrier),
+          overlapTimeslot(query, carrier),
+          packageFit(query, carrier),
+          inWorkingTimeslot(query, carrier)
+        ).flatten
+      )
     }
       .filter(_.matchAll)
       .sortBy(_.carrier.cost)
 
-    Result {
-      matcheds
-        .find(_.criterias.contains(InWorkingTimeslotBonus))
-        .orElse(matcheds.headOption)
-        .map(_.carrier.carrierId)
-    }
+    matcheds
+      .find(_.criterias.contains(InWorkingTimeslotBonus))
+      .orElse(matcheds.headOption)
+      .map(_.carrier.carrierId)
 
   }
+
+  private def inWorkingTimeslot(query: Query, carrier: Carrier) =
+    Option.when {
+      val distance             = Haversine.distanceInKm(query.pickupPoint, query.shippingPoint)
+      val timeItTakesToDeliver = Duration.ofSeconds((distance / carrier.speed * 3600).toLong)
+      timeItTakesToDeliver <= query.timeslot.duration
+    }(InWorkingTimeslotBonus)
+
+  private def packageFit(query: Query, carrier: Carrier) =
+    Option.when {
+      val weights = query.packets.packets.map(_.weight)
+      weights.sum <= carrier.maxWeight &&
+      weights.max <= carrier.maxPacketWeight &&
+      query.packets.packets.map(_.volume).max <= carrier.maxVolume
+    }(FitPackaging)
+
+  private def overlapTimeslot(query: Query, carrier: Carrier) =
+    Option.when(carrier.workingTimeslot.overlap(query.timeslot))(OverlapTimeslot)
+
+  private def inWorkingArea(query: Query, carrier: Carrier) =
+    Option.when {
+      val distanceToPickup   = Haversine.distanceInKm(carrier.workingArea.point, query.pickupPoint)
+      val distanceToShipping = Haversine.distanceInKm(carrier.workingArea.point, query.shippingPoint)
+      carrier.workingArea.radius >= distanceToPickup && carrier.workingArea.radius >= distanceToShipping
+    }(InWorkingArea)
 }
 
 private object Internals {
@@ -64,10 +75,4 @@ object GetBestCarrierForADelivery {
   object Query {
     implicit val rw: ReadWriter[Query] = macroRW
   }
-
-  case class Result(carrierId: Option[CarrierId])
-  object Result {
-    implicit val rw: ReadWriter[Result] = macroRW
-  }
-
 }

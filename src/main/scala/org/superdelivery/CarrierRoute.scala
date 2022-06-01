@@ -1,7 +1,8 @@
 package org.superdelivery
 
 import cask._
-import cask.model.Status.{Conflict, Created}
+import cask.endpoints.JsonData
+import cask.model.Status.{Conflict, Created, NotFound}
 import org.superdelivery.model.{
   Area,
   Carrier,
@@ -26,10 +27,10 @@ class CarrierRoute(carrierRepository: Repository[CarrierId, Carrier]) extends Ma
   private[this] val getBestCarrierForADelivery = new GetBestCarrierForADelivery(carrierRepository)
 
   @postJson("/api/carriers")
-  def createCarrier(requestCarrier: CreateACarrier.Command): Response[String] = {
+  def createCarrier(requestCarrier: CreateACarrier.Command): Response[JsonData] = {
     val result = createACarrier.handle(requestCarrier)
     result match {
-      case Right(carrier) => Response(carrier.carrierId.id, Created.code)
+      case Right(carrier) => Response(carrier.carrierId, Created.code)
       case Left(error)    => Response(error, Conflict.code)
     }
   }
@@ -55,8 +56,11 @@ class CarrierRoute(carrierRepository: Repository[CarrierId, Carrier]) extends Ma
   )
 
   @postJson("/api/carriers/deliveries")
-  def findBestForADelivery(query: GetBestCarrierForADelivery.Query): GetBestCarrierForADelivery.Result =
-    getBestCarrierForADelivery.handle(query)
+  def findBestForADelivery(query: GetBestCarrierForADelivery.Query): Response[JsonData] =
+    getBestCarrierForADelivery.handle(query) match {
+      case Some(carrierId) => Response(carrierId)
+      case None            => Abort(NotFound.code)
+    }
 
   initialize()
 }

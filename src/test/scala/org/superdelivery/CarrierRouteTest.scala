@@ -1,6 +1,6 @@
 package org.superdelivery
 
-import cask.model.Status.OK
+import cask.model.Status.{NotFound, OK}
 import io.undertow.Undertow
 import munit.FunSuite
 import org.superdelivery.model.{Area, CarrierId, Compatibilities, Packet, Packets, Point, Timeslot}
@@ -30,7 +30,7 @@ class CarrierRouteTest extends FunSuite {
       data = upickle.default.write(RequestCommand(Data.command))
     )
     assertEquals(response.statusCode, 201)
-    assertEquals(response.text(), """"john-express"""")
+    assertEquals(upickle.default.read[CarrierId](response.text()), CarrierId("john-express"))
   }
 
   serverFixture.test("return Conflict status and reason when carrier already exists") { _ =>
@@ -45,25 +45,27 @@ class CarrierRouteTest extends FunSuite {
   }
 
   serverFixture.test("return carriers with their compatibility against a delivery category") { _ =>
-    val johnExpress = upickle.default.write(
-      RequestCommand(
-        CreateACarrier.Command(
-          name = "john express",
-          workingTimeslot = Timeslot(
-            LocalTime.parse("09:00"),
-            LocalTime.parse("18:00")
-          ),
-          workingArea = Area(Point(43.2969901, 5.3789783), 10),
-          maxWeight = 200,
-          maxVolume = 12,
-          maxPacketWeight = 20,
-          speed = 50,
-          cost = 15
+    requests.post(
+      url = carrierUrl,
+      data = upickle.default.write(
+        RequestCommand(
+          CreateACarrier.Command(
+            name = "john express",
+            workingTimeslot = Timeslot(
+              LocalTime.parse("09:00"),
+              LocalTime.parse("18:00")
+            ),
+            workingArea = Area(Point(43.2969901, 5.3789783), 10),
+            maxWeight = 200,
+            maxVolume = 12,
+            maxPacketWeight = 20,
+            speed = 50,
+            cost = 15
+          )
         )
-      )
+      ),
+      check = false
     )
-
-    requests.post(carrierUrl, data = johnExpress, check = false)
 
     val response = requests.get(
       url = s"$carrierUrl/categories",
@@ -80,9 +82,8 @@ class CarrierRouteTest extends FunSuite {
     )
 
     assertEquals(response.statusCode, OK.code)
-    val result = upickle.default.read[List[GetCarriersForACategory.Result]](response.text())
     assertEquals(
-      result,
+      upickle.default.read[List[GetCarriersForACategory.Result]](response.text()),
       List(
         GetCarriersForACategory.Result(CarrierId("john-express"), Compatibilities.PARTIAL)
       )
@@ -90,25 +91,27 @@ class CarrierRouteTest extends FunSuite {
   }
 
   serverFixture.test("get best carrier for a delivery") { _ =>
-    val johnExpress = upickle.default.write(
-      RequestCommand(
-        CreateACarrier.Command(
-          name = "john express",
-          workingTimeslot = Timeslot(
-            LocalTime.parse("09:00"),
-            LocalTime.parse("18:00")
-          ),
-          workingArea = Area(Point(43.2969901, 5.3789783), 10),
-          maxWeight = 200,
-          maxVolume = 12,
-          maxPacketWeight = 20,
-          speed = 50,
-          cost = 15
+    requests.post(
+      url = carrierUrl,
+      data = upickle.default.write(
+        RequestCommand(
+          CreateACarrier.Command(
+            name = "john express",
+            workingTimeslot = Timeslot(
+              LocalTime.parse("09:00"),
+              LocalTime.parse("18:00")
+            ),
+            workingArea = Area(Point(43.2969901, 5.3789783), 10),
+            maxWeight = 200,
+            maxVolume = 12,
+            maxPacketWeight = 20,
+            speed = 50,
+            cost = 15
+          )
         )
-      )
+      ),
+      check = false
     )
-
-    requests.post(carrierUrl, data = johnExpress, check = false)
 
     val response = requests.post(
       url = s"$carrierUrl/deliveries",
@@ -133,8 +136,37 @@ class CarrierRouteTest extends FunSuite {
     )
 
     assertEquals(response.statusCode, OK.code)
-    val result = upickle.default.read[GetBestCarrierForADelivery.Result](response.text())
-    assertEquals(result, GetBestCarrierForADelivery.Result(Some(CarrierId("john-express"))))
+    assertEquals(
+      upickle.default.read[CarrierId](response.text()),
+      CarrierId("john-express")
+    )
+  }
+
+  serverFixture.test("get no carrier for a delivery") { _ =>
+    val response = requests.post(
+      url = s"$carrierUrl/deliveries",
+      check = false,
+      data = upickle.default.write(
+        RequestQuery(
+          GetBestCarrierForADelivery.Query(
+            pickupPoint = Point(43.2969901, 5.3789783),
+            shippingPoint = Point(43.2969901, 5.3789783),
+            timeslot = Timeslot(
+              LocalTime.parse("09:00"),
+              LocalTime.parse("18:00")
+            ),
+            packets = Packets(
+              List(
+                Packet(10, 2),
+                Packet(15, 4)
+              )
+            )
+          )
+        )
+      )
+    )
+
+    assertEquals(response.statusCode, NotFound.code)
   }
 
   case class RequestCommand(requestCarrier: CreateACarrier.Command)

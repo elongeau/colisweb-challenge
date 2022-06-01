@@ -4,7 +4,7 @@ import munit.FunSuite
 import org.superdelivery.Data
 import org.superdelivery.model.{Carrier, CarrierId, Point, Timeslot}
 import org.superdelivery.repositories.InMemoryCarrierRepository
-import org.superdelivery.usecases.GetBestCarrierForADelivery.{Query, Result}
+import org.superdelivery.usecases.GetBestCarrierForADelivery.Query
 
 import java.time.LocalTime
 
@@ -19,7 +19,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, Result(Some(Data.defaultCarrier.carrierId)))
+    assertEquals(result, Some(Data.defaultCarrier.carrierId))
   }
 
   private val updatePickup: Query => Query   = _.copy(pickupPoint = Point(48.891305, 2.3529867))
@@ -35,7 +35,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
       val result = sut.handle(updateFn(Data.defaultGetBestCarrierQuery))
 
-      assertEquals(result, Result(None))
+      assertEquals(result, None)
     }
   }
 
@@ -48,7 +48,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
       )
     )
 
-    assertEquals(result, Result(None))
+    assertEquals(result, None)
   }
 
   List(
@@ -63,7 +63,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
       val result = sut.handle(Data.defaultGetBestCarrierQuery.copy(timeslot = timeslot))
 
-      assertEquals(result, Result(Some(Data.defaultCarrier.carrierId)))
+      assertEquals(result, None)
     }
   }
 
@@ -80,7 +80,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
       val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-      assertEquals(result, Result(None))
+      assertEquals(result, None)
     }
   }
 
@@ -94,7 +94,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assert(result.carrierId.isDefined)
+    assert(result.isDefined)
   }
 
   test("should return cheapest carrier when both are equivalent and match all criteria") {
@@ -108,7 +108,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, Result(Some(CarrierId("cheapest"))))
+    assertEquals(result, None)
   }
 
   test("should return carrier with bonus when both match all criteria but one can deliver in time") {
@@ -125,6 +125,6 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, Result(Some(CarrierId("with-bonus"))))
+    assertEquals(result, None)
   }
 }
