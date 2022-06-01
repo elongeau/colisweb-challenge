@@ -14,6 +14,7 @@ import org.superdelivery.domain.model.{
 }
 import GetCarriersForACategory.{Query, Result}
 import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.utils.Haversine
 
 class GetCarriersForACategory(carrierRepository: Repository[CarrierId, Carrier]) {
   def handle(query: Query): List[Result] = carrierRepository.getAll.map { carrier =>

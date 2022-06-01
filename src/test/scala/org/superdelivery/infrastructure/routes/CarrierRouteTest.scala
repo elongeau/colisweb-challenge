@@ -11,7 +11,7 @@ import upickle.default._
 
 import java.time.LocalTime
 
-class CarrierRouteTest extends FunSuite {
+class CarrierRouteTest extends FunSuite with JsonRW {
   private val serverFixture = FunFixture.apply[Undertow](
     setup = _ => {
       val server = Undertow.builder

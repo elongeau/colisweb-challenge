@@ -1,4 +1,4 @@
-package org.superdelivery.domain.usecases
+package org.superdelivery.domain.utils
 
 import org.superdelivery.domain.model.{DistanceInKm, Point}
 
