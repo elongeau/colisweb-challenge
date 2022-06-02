@@ -7,7 +7,8 @@ import upickle.default._
 
 import java.time.LocalTime
 
-trait JsonRW {
+/** [[ReadWriter]]s for the [[model]] */
+trait JsonReadWriters {
   implicit val carrierRW: ReadWriter[Carrier]     = macroRW
   implicit val carrierIdRW: ReadWriter[CarrierId] = macroRW
   implicit val packetRW: ReadWriter[Packet]       = macroRW

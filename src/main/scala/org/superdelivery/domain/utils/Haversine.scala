@@ -3,6 +3,12 @@ package org.superdelivery.domain.utils
 import org.superdelivery.domain.model.{DistanceInKm, Point}
 
 object Haversine {
+
+  /**
+   * Compute the distance between two Geocoordinates
+   * @return
+   *   the distance in kilometer
+   */
   def distanceInKm(origin: Point, destination: Point): DistanceInKm = {
     import scala.math._
     val Point(oLat, oLon)   = origin.toRadians

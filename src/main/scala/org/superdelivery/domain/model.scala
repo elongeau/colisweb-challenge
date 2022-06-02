@@ -1,10 +1,10 @@
 package org.superdelivery.domain
 
-import org.superdelivery.infrastructure.routes.JsonRW
+import org.superdelivery.infrastructure.routes.JsonReadWriters
 
 import java.time.{Duration, LocalTime}
 
-object model extends JsonRW {
+object model extends JsonReadWriters {
   case class Carrier(
     carrierId: CarrierId,
     name: String,
