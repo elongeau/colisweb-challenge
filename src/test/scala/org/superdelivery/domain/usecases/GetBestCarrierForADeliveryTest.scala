@@ -3,18 +3,24 @@ package org.superdelivery.domain.usecases
 import munit.FunSuite
 import org.superdelivery.Data
 import org.superdelivery.domain.model.{Carrier, CarrierId, Point, Timeslot}
+import org.superdelivery.domain.repositories.CarrierRepository
 import org.superdelivery.domain.usecases.GetBestCarrierForADelivery.Query
 import org.superdelivery.infrastructure.repositories.InMemoryCarrierRepository
 
 import java.time.LocalTime
 
 class GetBestCarrierForADeliveryTest extends FunSuite {
-  private val repository = new InMemoryCarrierRepository
-  private val sut        = new GetBestCarrierForADelivery(repository)
+  private val fixture: FunFixture[(GetBestCarrierForADelivery, CarrierRepository)] =
+    FunFixture.apply[(GetBestCarrierForADelivery, CarrierRepository)](
+      setup = _ => {
+        val repository = new InMemoryCarrierRepository
+        val sut        = new GetBestCarrierForADelivery(repository)
+        (sut, repository)
+      },
+      teardown = _ => ()
+    )
 
-  override def beforeEach(context: BeforeEach): Unit = repository.clear()
-
-  test("should return carrier when the only carrier match all criteria") {
+  fixture.test("should return carrier when the only carrier match all criteria") { case (sut, repository) =>
     repository.save(Data.defaultCarrier)
 
     val result = sut.handle(Data.defaultGetBestCarrierQuery)
@@ -30,7 +36,9 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
     ("the shipping", updateShipping),
     ("both", updatePickup.andThen(updateShipping))
   ).foreach { case (label, updateFn) =>
-    test(s"should return nothing when the carrier working area does not contain $label point(s) of the delivery") {
+    fixture.test(
+      s"should return nothing when the carrier working area does not contain $label point(s) of the delivery"
+    ) { case (sut, repository) =>
       repository.save(Data.defaultCarrier)
 
       val result = sut.handle(updateFn(Data.defaultGetBestCarrierQuery))
@@ -39,7 +47,9 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
     }
   }
 
-  test(s"should return nothing when the carrier working timeslot does not contain the timeslot of the delivery") {
+  fixture.test(
+    s"should return nothing when the carrier working timeslot does not contain the timeslot of the delivery"
+  ) { case (sut, repository) =>
     repository.save(Data.defaultCarrier)
 
     val result = sut.handle(
@@ -58,7 +68,9 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
   ).map { case (start, end) =>
     Timeslot(LocalTime.parse(start), LocalTime.parse(end))
   }.foreach { timeslot =>
-    test(s"should return carrier when the carrier working timeslot overlap the timeslot of the delivery: $timeslot") {
+    fixture.test(
+      s"should return carrier when the carrier working timeslot overlap the timeslot of the delivery: $timeslot"
+    ) { case (sut, repository) =>
       repository.save(Data.defaultCarrier)
 
       val result = sut.handle(Data.defaultGetBestCarrierQuery.copy(timeslot = timeslot))
@@ -75,7 +87,7 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
     ("max packet weight", updateMaxPacketWeight),
     ("max volume", updateMaxVolume)
   ).foreach { case (label, updateFn) =>
-    test(s"should return nothing when packaging does not fit $label") {
+    fixture.test(s"should return nothing when packaging does not fit $label") { case (sut, repository) =>
       repository.save(updateFn(Data.defaultCarrier))
 
       val result = sut.handle(Data.defaultGetBestCarrierQuery)
@@ -84,47 +96,50 @@ class GetBestCarrierForADeliveryTest extends FunSuite {
     }
   }
 
-  test("should return one of carriers when both are equivalent and match all criteria") {
-    repository.save(Data.defaultCarrier)
-    repository.save(
-      Data.defaultCarrier.copy(
-        carrierId = CarrierId("another-one")
+  fixture.test("should return one of carriers when both are equivalent and match all criteria") {
+    case (sut, repository) =>
+      repository.save(Data.defaultCarrier)
+      repository.save(
+        Data.defaultCarrier.copy(
+          carrierId = CarrierId("another-one")
+        )
       )
-    )
 
-    val result = sut.handle(Data.defaultGetBestCarrierQuery)
+      val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assert(result.isDefined)
+      assert(result.isDefined)
   }
 
-  test("should return cheapest carrier when both are equivalent and match all criteria") {
-    repository.save(Data.defaultCarrier)
-    repository.save(
-      Data.defaultCarrier.copy(
-        carrierId = CarrierId("cheapest"),
-        cost = 1
+  fixture.test("should return cheapest carrier when both are equivalent and match all criteria") {
+    case (sut, repository) =>
+      repository.save(Data.defaultCarrier)
+      repository.save(
+        Data.defaultCarrier.copy(
+          carrierId = CarrierId("cheapest"),
+          cost = 1
+        )
       )
-    )
 
-    val result = sut.handle(Data.defaultGetBestCarrierQuery)
+      val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, Some(CarrierId("cheapest")))
+      assertEquals(result, Some(CarrierId("cheapest")))
   }
 
-  test("should return carrier with bonus when both match all criteria but one can deliver in time") {
-    repository.save(
-      Data.defaultCarrier.copy(
-        speed = 0.1
+  fixture.test("should return carrier with bonus when both match all criteria but one can deliver in time") {
+    case (sut, repository) =>
+      repository.save(
+        Data.defaultCarrier.copy(
+          speed = 0.1
+        )
       )
-    )
-    repository.save(
-      Data.defaultCarrier.copy(
-        carrierId = CarrierId("with-bonus")
+      repository.save(
+        Data.defaultCarrier.copy(
+          carrierId = CarrierId("with-bonus")
+        )
       )
-    )
 
-    val result = sut.handle(Data.defaultGetBestCarrierQuery)
+      val result = sut.handle(Data.defaultGetBestCarrierQuery)
 
-    assertEquals(result, Some(CarrierId("with-bonus")))
+      assertEquals(result, Some(CarrierId("with-bonus")))
   }
 }

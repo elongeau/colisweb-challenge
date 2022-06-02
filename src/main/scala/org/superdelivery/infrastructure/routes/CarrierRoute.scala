@@ -5,8 +5,6 @@ import cask.endpoints.JsonData
 import cask.model.Status.{Conflict, Created, NotFound}
 import org.superdelivery.domain.model.{
   Area,
-  Carrier,
-  CarrierId,
   DistanceInKm,
   Latitude,
   Longitude,
@@ -15,13 +13,13 @@ import org.superdelivery.domain.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
-import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.repositories.CarrierRepository
 import org.superdelivery.domain.usecases.GetCarriersForACategory.Query
 import org.superdelivery.domain.usecases.{CreateACarrier, GetBestCarrierForADelivery, GetCarriersForACategory}
 
 import java.time.LocalTime
 
-class CarrierRoute(carrierRepository: Repository[CarrierId, Carrier]) extends MainRoutes with JsonRW {
+class CarrierRoute(carrierRepository: CarrierRepository) extends MainRoutes with JsonRW {
   private[this] val createACarrier             = new CreateACarrier(carrierRepository)
   private[this] val getCarriersForACategory    = new GetCarriersForACategory(carrierRepository)
   private[this] val getBestCarrierForADelivery = new GetBestCarrierForADelivery(carrierRepository)

@@ -12,7 +12,7 @@ import upickle.default._
 import java.time.LocalTime
 
 class CarrierRouteTest extends FunSuite with JsonRW {
-  private val serverFixture = FunFixture.apply[Undertow](
+  private val fixture = FunFixture.apply[Undertow](
     setup = _ => {
       val server = Undertow.builder
         .addHttpListener(8081, "localhost")
@@ -25,7 +25,7 @@ class CarrierRouteTest extends FunSuite with JsonRW {
   )
   private val carrierUrl = "http://localhost:8081/api/carriers"
 
-  serverFixture.test("return Created status with ID when carrier is created") { _ =>
+  fixture.test("return Created status with ID when carrier is created") { _ =>
     val response = requests.post(
       s"$carrierUrl",
       data = upickle.default.write(RequestCommand(Data.command))
@@ -34,7 +34,7 @@ class CarrierRouteTest extends FunSuite with JsonRW {
     assertEquals(upickle.default.read[CarrierId](response.text()), CarrierId("john-express"))
   }
 
-  serverFixture.test("return Conflict status and reason when carrier already exists") { _ =>
+  fixture.test("return Conflict status and reason when carrier already exists") { _ =>
     val json = upickle.default.write(RequestCommand(Data.command))
     requests.post(carrierUrl, data = json, check = false)
 
@@ -45,7 +45,7 @@ class CarrierRouteTest extends FunSuite with JsonRW {
     assertEquals(response.text(), """"A carrier with same ID already exists"""")
   }
 
-  serverFixture.test("return carriers with their compatibility against a delivery category") { _ =>
+  fixture.test("return carriers with their compatibility against a delivery category") { _ =>
     requests.post(
       url = carrierUrl,
       data = upickle.default.write(RequestCommand(Data.command)),
@@ -75,7 +75,7 @@ class CarrierRouteTest extends FunSuite with JsonRW {
     )
   }
 
-  serverFixture.test("get best carrier for a delivery") { _ =>
+  fixture.test("get best carrier for a delivery") { _ =>
     requests.post(
       url = carrierUrl,
       data = upickle.default.write(RequestCommand(Data.command)),
@@ -109,7 +109,7 @@ class CarrierRouteTest extends FunSuite with JsonRW {
     )
   }
 
-  serverFixture.test("get no carrier for a delivery") { _ =>
+  fixture.test("get no carrier for a delivery") { _ =>
     val response = requests.post(
       url = s"$carrierUrl/deliveries",
       check = false,

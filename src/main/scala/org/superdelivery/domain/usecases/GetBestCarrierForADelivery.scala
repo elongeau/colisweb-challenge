@@ -1,7 +1,7 @@
 package org.superdelivery.domain.usecases
 
 import org.superdelivery.domain.model.{Carrier, CarrierId, Packet, Point, Timeslot}
-import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.repositories.CarrierRepository
 import org.superdelivery.domain.usecases.GetBestCarrierForADelivery.Query
 import org.superdelivery.domain.usecases.Internals._
 import org.superdelivery.domain.utils.Haversine
@@ -9,7 +9,7 @@ import org.superdelivery.domain.utils.Haversine
 import java.time.Duration
 import scala.math.Ordered.orderingToOrdered
 
-class GetBestCarrierForADelivery(repository: Repository[CarrierId, Carrier]) {
+class GetBestCarrierForADelivery(repository: CarrierRepository) {
   def handle(query: Query): Option[CarrierId] = {
     val matcheds = repository.getAll.map { carrier =>
       MatchingCarrier(

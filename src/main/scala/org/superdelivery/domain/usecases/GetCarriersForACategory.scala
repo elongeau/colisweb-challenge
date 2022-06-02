@@ -1,22 +1,12 @@
 package org.superdelivery.domain.usecases
 
 import org.superdelivery.domain.model.Compatibilities.Compatibility
-import org.superdelivery.domain.model.{
-  Area,
-  Carrier,
-  CarrierId,
-  Compatibilities,
-  DistanceInKm,
-  Point,
-  Timeslot,
-  VolumeInCubeMeter,
-  WeightInKg
-}
-import GetCarriersForACategory.{Query, Result}
-import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.model.{Area, CarrierId, Compatibilities, Timeslot, VolumeInCubeMeter, WeightInKg}
+import org.superdelivery.domain.repositories.CarrierRepository
+import org.superdelivery.domain.usecases.GetCarriersForACategory.{Query, Result}
 import org.superdelivery.domain.utils.Haversine
 
-class GetCarriersForACategory(carrierRepository: Repository[CarrierId, Carrier]) {
+class GetCarriersForACategory(carrierRepository: CarrierRepository) {
   def handle(query: Query): List[Result] = carrierRepository.getAll.map { carrier =>
     val distanceCompatibility = {
       val distance    = Haversine.distanceInKm(carrier.workingArea.point, query.deliveryArea.point)

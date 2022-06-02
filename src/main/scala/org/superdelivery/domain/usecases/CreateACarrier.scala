@@ -10,10 +10,10 @@ import org.superdelivery.domain.model.{
   VolumeInCubeMeter,
   WeightInKg
 }
-import org.superdelivery.domain.repositories.Repository
+import org.superdelivery.domain.repositories.CarrierRepository
 import org.superdelivery.domain.usecases.CreateACarrier.Command
 
-class CreateACarrier(repository: Repository[CarrierId, Carrier]) {
+class CreateACarrier(repository: CarrierRepository) {
   def handle(command: Command): Either[String, Carrier] = {
     val id = CarrierId(slugify(command.name))
     repository
